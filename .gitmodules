@@ -1,0 +1,3 @@
+[submodule "i8080emu"]
+	path = i8080emu
+	url = https://github.com/Hypercube8/i8080emu.git
