@@ -1,3 +1,3 @@
 [submodule "i8080emu"]
-	path = i8080emu
+	path = space-invaders-emulator/wasm/lib/i8080emu
 	url = https://github.com/Hypercube8/i8080emu.git
