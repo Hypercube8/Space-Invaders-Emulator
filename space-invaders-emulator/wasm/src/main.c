@@ -1,45 +1,72 @@
-#include <SDL.h>
-#include <SDL_opengl.h>
-#include <emscripten.h>
+#include <emscripten/html5.h>
+#include <GLES3/gl3.h> 
+#include <stdio.h>
 
-SDL_Window *window;
-SDL_GLContext glContext;
+#include "common.h"
+#include "context.h"
+#include "shader.h"
+#include "vertex.h"
+
 int running = 1;
 
+GLuint default_prog;
+GLuint vbo;
+GLuint vao;
+
 void main_loop() {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) running = 0;
-    }
-
-    // Set clear color and clear the screen
-    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    SDL_GL_SwapWindow(window);
-
     if (!running) {
         emscripten_cancel_main_loop();
+        return;
     }
+
+    glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(default_prog);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
 }
 
-int main(int argc, char *argv[]) {
-    SDL_Init(SDL_INIT_VIDEO);
+int main() {
+    EmscriptenWebGLContextAttributes attr;
+    emscripten_webgl_init_context_attributes(&attr);
+    attr.alpha = 0;
+    attr.depth = 1;
+    attr.antialias = 1;
+    attr.majorVersion = 2;
+    attr.minorVersion = 0;
+    create_context(&attr);
 
-    // Create window with OpenGL context
-    window = SDL_CreateWindow("SDL OpenGL Emscripten",
-                              SDL_WINDOWPOS_CENTERED,
-                              SDL_WINDOWPOS_CENTERED,
-                              640, 480,
-                              SDL_WINDOW_OPENGL);
+    default_prog = create_shader_program(
+        "../shaders/default/vert.glsl", 
+        "../shaders/default/frag.glsl"
+    );
 
-    glContext = SDL_GL_CreateContext(window);
+    float vertices[] = {
+        0.0f,  0.5f, 0.0f,   // top
+       -0.5f, -0.5f, 0.0f,   // left
+        0.5f, -0.5f, 0.0f    // right
+    };
+    vbo = create_vertex_buffer(GL_STATIC_DRAW, sizeof(vertices), vertices);
 
-    // Use emscripten_set_main_loop for rendering loop
+    vert_attr_t attributes[] = {
+        { 
+            .vbo = vbo,
+            .size = 3,
+            .type = GL_FLOAT,
+            .normalized = GL_FALSE,
+            .stride = 3 * sizeof(float),
+            .pointer = (void*)0
+        }
+    };
+    vao = create_vertex_array(ARRAY_LEN(attributes), attributes);
+
     emscripten_set_main_loop(main_loop, 0, 1);
 
-    SDL_GL_DeleteContext(glContext);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    glDeleteProgram(default_prog);
+    glDeleteBuffers(1, &vbo);
+    glDeleteVertexArrays(1, &vao);
+
     return 0;
 }
