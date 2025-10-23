@@ -13,9 +13,8 @@ typedef struct {
     const void *pointer;
 } vert_attr_t;
 
-GLuint create_vertex_buffer(GLenum usage, size_t data_size, const void *data);
-GLuint create_vertex_array(size_t num_attr, vert_attr_t *attr_ptr);
+GLuint create_vertex_array(GLuint ebo, size_t num_attr, vert_attr_t *attr_ptr);
 
-static void set_attribute(GLuint vao, unsigned int index, vert_attr_t *attr);
+static void set_attributes(GLuint vao, size_t num_attr, vert_attr_t *attr_ptr);
 
 #endif
