@@ -12,10 +12,14 @@
 int running = 1;
 
 GLuint default_prog;
+
 GLuint vbo;
 GLuint ebo;
 GLuint vao;
+
+unsigned char *data;
 GLuint tex;
+GLuint pbo;
 
 void main_loop() {
     if (!running) {
@@ -29,6 +33,26 @@ void main_loop() {
     glUseProgram(default_prog);
 
     glBindTexture(GL_TEXTURE_2D, tex);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+    void *mapped_pbo = glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, 256 * 224 * 3, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT);
+
+    static bool isEven = true;
+    if (isEven) {
+        for (int i = 0; i < 256 * 224 * 3; ++i) {
+            data[i] = 255;
+        }
+    } else {
+        for (int i = 0; i < 256 * 224 * 3; ++i) {
+            data[i] = 0;
+        }
+    }
+    isEven = !isEven;
+    memcpy(mapped_pbo, data, 256 * 224 * 3);
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 224, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -84,16 +108,11 @@ int main() {
     };
     vao = create_vertex_array(ebo, ARRAY_LEN(attributes), attributes);
 
-    unsigned char *data = (unsigned char*)malloc(256 * 224 * 3);
+    data = (unsigned char*)malloc(256 * 224 * 3);
     if (!data) {
         // Handle memory allocation failure
         perror("Failed to allocate memory for texture data");
         return 1;
-    }
-
-    // Fill the data buffer with all white pixels
-    for (int i = 0; i < 256 * 224 * 3; ++i) {
-        data[i] = 255;
     }
 
     tex_param_t params[] = { 
@@ -120,12 +139,14 @@ int main() {
         .format = GL_RGB,
         .type = GL_UNSIGNED_BYTE,
         .num_params = ARRAY_LEN(params),
-        .params = params
+        .params = params,
+        .width = 256,
+        .height = 224,
+        .data = data
     };
-    spec.width = 256;
-    spec.height = 224;
-    spec.data = data;
     tex = create_texture(&spec);
+
+    pbo = create_buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW, 256 * 224 * 3, NULL);
 
     emscripten_set_main_loop(main_loop, 0, 1);
 
@@ -135,6 +156,7 @@ int main() {
     glDeleteVertexArrays(1, &vao);
     free(data);
     glDeleteTextures(1, &tex);
+    glDeleteBuffers(1, &pbo);
 
     return 0;
 }
