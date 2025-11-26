@@ -1,0 +1,28 @@
+  <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Minimal SDL3 Example</title>
+    </head>
+    <style>
+      body, html {
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <body>
+        <canvas id="canvas" width="640" height="480"></canvas>
+        <script type='text/javascript'>
+            var Module = {
+                canvas: document.getElementById('canvas')
+            };
+        </script>
+        <script async type="text/javascript" src="app.js"></script>
+    </body>
+    </html>
