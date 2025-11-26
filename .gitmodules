@@ -1,0 +1,9 @@
+[submodule "Space-Invaders-Emulator/emsdk"]
+	path = Space-Invaders-Emulator/emsdk
+	url = https://github.com/emscripten-core/emsdk.git
+[submodule "Space-Invaders-Emulator/lib/cimgui"]
+	path = Space-Invaders-Emulator/lib/cimgui
+	url = https://github.com/cimgui/cimgui.git
+[submodule "Space-Invaders-Emulator/lib/i8080emu"]
+	path = Space-Invaders-Emulator/lib/i8080emu
+	url = https://github.com/Hypercube8/i8080emu.git
